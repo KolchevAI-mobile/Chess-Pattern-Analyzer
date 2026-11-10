@@ -1,0 +1,38 @@
+# ---------- Android ----------
+/android/.gradle/
+/android/.idea/
+/android/local.properties
+/android/build/
+/android/app/build/
+/android/captures/
+*.iml
+*.apk
+*.aab
+.externalNativeBuild/
+.cxx/
+
+# ---------- Backend (Kotlin/Spring) ----------
+/backend/.gradle/
+/backend/build/
+/backend/out/
+
+# ---------- ML (Python) ----------
+/ml/.venv/
+/ml/.env
+/ml/tools/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# ---------- IDE / OS ----------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+/.tmp/
