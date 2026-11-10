@@ -16,11 +16,7 @@
 ChessPatternAnalyzer/
 ├── android/     # Android-клиент: Kotlin + Jetpack Compose
 ├── backend/     # API для клиента: Kotlin + Spring Boot (порт 8080)
-├── ml/          # ML/аналитическое ядро: Python + FastAPI + Stockfish (порт 8000)
-├── Passport.md  # паспорт проекта (замысел, ЦА, архитектура)
-├── Roadmap.md   # дорожная карта по вехам
-├── MVP.md       # спецификация ближайшего MVP
-└── Commits.md   # карта коммитов: сообщение, файлы, смысл (append-only)
+└── ml/          # ML/аналитическое ядро: Python + FastAPI + Stockfish (порт 8000)
 ```
 
 **ML-ядро — центр проекта.** Backend и Android — оболочки: они доставляют партии,
