@@ -1,0 +1,20 @@
+server:
+  port: ${BACKEND_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: chess-pattern-backend
+  jackson:
+    default-property-inclusion: non_null
+
+app:
+  version: 0.1.0
+  # Адрес ML-ядра (Python/FastAPI). Пока не используется — появится в M2 вместе
+  # с очередью заданий на анализ.
+  ml-service-url: ${ML_SERVICE_URL:http://localhost:8000}
+
+logging:
+  level:
+    root: INFO
+    com.chesspattern: DEBUG
