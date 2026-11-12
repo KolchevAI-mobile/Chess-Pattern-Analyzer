@@ -30,7 +30,9 @@ python -m venv .venv
 ```
 
 Конфигурация — переменные окружения или `.env` (шаблон в `.env.example`).
-Ключевые: `STOCKFISH_PATH`, `STOCKFISH_DEPTH`, `MAX_GAMES_PER_REQUEST`, пороги ошибок.
+Ключевые: `STOCKFISH_PATH`, `STOCKFISH_DEPTH`, `MAX_DEPTH`, `MAX_GAMES_PER_REQUEST`, пороги ошибок.
+`MAX_DEPTH` (по умолчанию 10) — жёсткий потолок: глубина из запроса зажимается в него,
+чтобы на слабом сервере разбор партии не превращался в минуты.
 
 Без Stockfish сервис тоже работает и честно сообщает об этом в `/health`:
 `engine.name = "heuristic"`, `note` с пояснением.
