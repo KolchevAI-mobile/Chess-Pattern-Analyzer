@@ -1,4 +1,4 @@
-package com.example.chesspatternanalyzer
+package com.chesspattern
 
 import org.junit.Test
 

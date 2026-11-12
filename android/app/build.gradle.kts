@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.chesspatternanalyzer"
+    namespace = "com.chesspattern"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.chesspatternanalyzer"
+        applicationId = "com.chesspattern"
         minSdk = 28
         targetSdk = 37
         versionCode = 1

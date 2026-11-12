@@ -16,8 +16,7 @@ cd android
 
 ## Параметры
 
-- `namespace`/`applicationId`: `com.example.chesspatternanalyzer` (временный — переименование
-  запланировано в M1, см. Roadmap.md).
+- `namespace`/`applicationId`: `com.chesspattern`.
 - `compileSdk`/`targetSdk`: 37, `minSdk`: 28.
 - Compose BOM 2026.02.01, AGP 9.4.1, Kotlin 2.2.10.
 

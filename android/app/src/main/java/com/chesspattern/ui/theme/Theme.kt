@@ -1,4 +1,4 @@
-package com.example.chesspatternanalyzer.ui.theme
+package com.chesspattern.ui.theme
 
 import android.app.Activity
 import android.os.Build
