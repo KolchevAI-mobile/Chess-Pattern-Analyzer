@@ -66,3 +66,25 @@ def test_analyze_unknown_player_is_422() -> None:
 def test_analyze_empty_pgn_is_validation_error() -> None:
     response = _client().post("/api/v1/analyze", json={"pgn": "   ", "player": "Bob"})
     assert response.status_code == 422
+
+
+def test_depth_is_capped_by_settings() -> None:
+    # На MVP глубина жёстко ограничена: 20 партий на слабом CPU иначе не уложатся.
+    service = AnalysisService(Settings(_env_file=None, stockfish_path=None, max_depth=10))
+
+    assert service.effective_depth(18) == 10
+    assert service.effective_depth(None) == 10
+    assert service.effective_depth(4) == 4
+    # 0 и None означают «не задано» — берём глубину по умолчанию.
+    assert service.effective_depth(0) == 10
+
+
+def test_depth_cap_does_not_break_heuristic_mode() -> None:
+    # Эвристика глубину не использует — в meta честно отдаём 0.
+    response = _client().post(
+        "/api/v1/analyze",
+        json={"pgn": PGN, "player": "Bob", "depth": 18},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["meta"]["depth"] == 0

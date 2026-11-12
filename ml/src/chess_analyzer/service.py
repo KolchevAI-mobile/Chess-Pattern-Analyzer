@@ -53,7 +53,7 @@ class AnalysisService:
         if not games:
             raise EmptyPgnError("PGN пуст или не содержит разбираемых партий")
 
-        evaluator = create_evaluator(self.settings, depth)
+        evaluator = create_evaluator(self.settings, self.effective_depth(depth))
         analyses: list[GameAnalysis] = []
         skipped: list[str] = []
         try:
@@ -84,6 +84,12 @@ class AnalysisService:
             patterns=tuple(detect_patterns(tuple(analyses), self.settings)),
             skipped=tuple(skipped),
             engine=engine_info.name,
-            depth=depth or engine_info.depth,
+            # Эвристика глубиной не считается — честно отдаём 0.
+            depth=self.effective_depth(depth) if engine_info.name == "stockfish" else 0,
             duration_ms=int((time.perf_counter() - started) * 1000),
         )
+
+    def effective_depth(self, requested: int | None) -> int:
+        """Глубина из запроса, зажатая в [1, max_depth]."""
+        depth = requested or self.settings.stockfish_depth
+        return max(1, min(depth, self.settings.max_depth))

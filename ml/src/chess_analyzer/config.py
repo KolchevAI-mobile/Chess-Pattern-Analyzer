@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # оценщик (материал), чтобы пайплайн оставался рабочим без Stockfish.
     stockfish_path: str | None = None
     stockfish_depth: int = 10
+    # Жёсткий потолок глубины на MVP: на бесплатных 1-2 vCPU depth 12+ превращает
+    # разбор 20 партий в 3-5 минут. Поднимается вместе с переездом на выделенный сервер.
+    max_depth: int = 10
     stockfish_threads: int = 1
     stockfish_hash_mb: int = 64
 
