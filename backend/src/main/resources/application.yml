@@ -7,6 +7,17 @@ spring:
     name: chess-pattern-backend
   jackson:
     default-property-inclusion: non_null
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chess}
+    username: ${DB_USER:chess}
+    password: ${DB_PASSWORD:chess}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # Схему создаёт Flyway; Hibernate только проверяет соответствие.
+      ddl-auto: validate
+  flyway:
+    enabled: true
 
 app:
   version: 0.1.0
