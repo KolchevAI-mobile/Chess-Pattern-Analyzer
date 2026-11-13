@@ -62,12 +62,16 @@ Copy-Item .env.example .env            # затем впишите STOCKFISH_PAT
 
 ### Backend
 
+Нужен PostgreSQL (M1). Самый простой способ — compose из `infra/`:
+
 ```powershell
+docker compose -f infra\docker-compose.yml up -d      # Postgres на localhost:5432
 cd backend
 .\gradlew.bat bootRun
 ```
 
-Проверка: <http://localhost:8080/api/v1/health>. Тесты: `.\gradlew.bat test`.
+Проверка: <http://localhost:8080/api/v1/health>. Тесты: `.\gradlew.bat test`
+(тест контекста с БД включается флагом `DB_TESTS=true`).
 Если `bootRun` не нужен, собранный jar запускается так:
 
 ```powershell

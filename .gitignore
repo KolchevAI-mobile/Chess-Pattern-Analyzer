@@ -38,3 +38,7 @@ htmlcov/
 Thumbs.db
 *.log
 /.tmp/
+
+# Карта коммитов ведётся локально и в git не попадает (по договорённости).
+/Commits.md
+/infra/.env
