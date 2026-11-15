@@ -86,6 +86,8 @@ def to_response(result: AnalysisResult, player: str) -> AnalyzeResponse:
             games_analyzed=len(result.games),
             skipped_games=list(result.skipped),
             engine=result.engine,
+            engine_version=result.engine_version,
+            analysis_version=result.analysis_version,
             depth=result.depth,
             duration_ms=result.duration_ms,
         ),

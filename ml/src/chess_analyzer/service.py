@@ -25,6 +25,8 @@ class AnalysisResult:
     engine: str
     depth: int
     duration_ms: int
+    analysis_version: str = "1"
+    engine_version: str = ""
 
 
 class AnalysisService:
@@ -87,6 +89,8 @@ class AnalysisService:
             # Эвристика глубиной не считается — честно отдаём 0.
             depth=self.effective_depth(depth) if engine_info.name == "stockfish" else 0,
             duration_ms=int((time.perf_counter() - started) * 1000),
+            analysis_version=self.settings.analysis_version,
+            engine_version=chess.__version__,
         )
 
     def effective_depth(self, requested: int | None) -> int:

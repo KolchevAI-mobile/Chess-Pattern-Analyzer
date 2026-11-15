@@ -115,6 +115,8 @@ class MetaOut(BaseModel):
     games_analyzed: int
     skipped_games: list[str]
     engine: str
+    engine_version: str
+    analysis_version: str
     depth: int
     duration_ms: int
 
