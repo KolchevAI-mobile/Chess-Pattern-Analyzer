@@ -6,9 +6,9 @@
 
 Исходный замысел описан в [Passport.md](Passport.md).
 
-> **Статус: M0 — каркас.** Все три части собираются и запускаются, ML-ядро уже считает
-> реальный разбор партии (Stockfish), но данных ещё не хранит. Android-приложение — пока шаблон.
-> Что дальше — в [Roadmap.md](Roadmap.md).
+> **Статус: M1 — вертикальный срез.** По нику Lichess импортируются партии, разбираются
+> Stockfish-ом, сохраняются в PostgreSQL, а клиент получает «диагноз» с паттернами.
+> Очередь, OAuth и тренировки — следующие вехи: [Roadmap.md](Roadmap.md).
 
 ## Структура репозитория
 
@@ -27,8 +27,8 @@ ChessPatternAnalyzer/
 | Часть | Состояние | Проверка |
 |---|---|---|
 | ML | Разбор PGN: cp-loss по ходам, точность, фазы, ошибки, детекторы паттернов, «надлом» | `GET /health`, `POST /api/v1/analyze`, Swagger `/docs` |
-| Backend | Spring Boot 4.1.2, health-эндпоинт, карточка сервиса | `GET /api/v1/health` |
-| Android | Шаблон Compose (один экран), сборка под SDK 37 | `./gradlew :app:assembleDebug` |
+| Backend | Импорт Lichess, PostgreSQL, кэш разбора, витрина API | `POST /api/v1/import`, `GET /api/v1/insights` |
+| Android | Экран ника → импорт → «Диагноз» и список партий | `./gradlew :app:assembleDebug` |
 
 ## Быстрый старт
 

@@ -69,9 +69,33 @@ src/test/kotlin/...                     # smoke-тест контекста (с 
 `analyses.payload` — `jsonb` с ответом ML-ядра целиком: новые признаки (MMMP, ΔS в M4)
 добавляются в JSON без миграций БД.
 
-## Что появится дальше (см. Roadmap.md, M1–M2)
+## Эндпоинты M1
 
-- `POST /api/v1/import` — импорт партий Lichess по нику.
-- `GET /api/v1/games`, `GET /api/v1/games/{id}` (ошибки постранично), `GET /api/v1/insights`.
-- Кэш разбора по `sha256` PGN.
-- Очередь задач и Lichess OAuth — M2.
+```http
+POST /api/v1/import
+{ "platform": "lichess", "username": "nick", "limit": 10, "perfType": "rapid" }
+→ { "player": "nick", "gamesImported": 10, "gamesAnalysed": 10,
+    "cached": 0, "patternsFound": 2, "durationMs": 13027 }
+
+GET /api/v1/games?player=nick&limit=20
+→ [ { "id": "...", "white": "...", "black": "...", "result": "1-0",
+      "accuracy": 95.1, "blunders": 0, "mistakes": 2, "analysed": true } ]
+
+GET /api/v1/games/{id}?offset=0&size=20
+→ { "errors": [...], "errorsTotal": 8, "breakingPoint": {...} }
+
+GET /api/v1/insights?player=nick
+→ { "player": "nick", "gamesAnalysed": 10,
+    "patterns": [ { "code": "phase_gap", "title": "...", "severity": 0.56,
+                    "confidence": 1.0, "evidence": [...] } ],
+    "breakingPoint": { "gamesWithBreakingPoint": 1, "medianPly": 35.0 } }
+```
+
+Кэш: если все партии выборки уже разобраны текущей `analysis_version`, ML не вызывается —
+повторный импорт отвечает за миллисекунды (`cached` = число партий).
+
+## Что появится дальше (см. Roadmap.md, M2)
+
+- Очередь задач и прогресс импорта (50 партий за раз).
+- Lichess OAuth: вход и приватные партии.
+- Аутентификация (JWT) и мультипользовательский режим.
