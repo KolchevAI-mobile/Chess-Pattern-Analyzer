@@ -6,4 +6,7 @@ import java.util.UUID
 
 interface PatternHitRepository : JpaRepository<PatternHitEntity, UUID> {
     fun findAllByUserIdOrderByComputedAtDesc(userId: UUID): List<PatternHitEntity>
+
+    /** Перезапись снимка паттернов при повторном разборе. */
+    fun deleteAllByUserId(userId: UUID)
 }

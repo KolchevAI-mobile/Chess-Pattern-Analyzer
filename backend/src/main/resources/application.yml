@@ -21,9 +21,14 @@ spring:
 
 app:
   version: 0.1.0
-  # Адрес ML-ядра (Python/FastAPI). Пока не используется — появится в M2 вместе
-  # с очередью заданий на анализ.
+  # Адрес ML-ядра (Python/FastAPI).
   ml-service-url: ${ML_SERVICE_URL:http://localhost:8000}
+  # Версия методики разбора: при смене формулы старые разборы пересчитываются.
+  analysis-version: "1"
+  # Потолок импорта за один запрос (больше — очередь, веха M2).
+  import-limit: 20
+  # Глубина Stockfish; в ML дополнительно зажата MAX_DEPTH=10.
+  analysis-depth: 10
 
 logging:
   level:
