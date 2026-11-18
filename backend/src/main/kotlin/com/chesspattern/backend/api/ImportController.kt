@@ -1,12 +1,14 @@
 package com.chesspattern.backend.api
 
-import com.chesspattern.backend.service.ImportService
-import com.chesspattern.backend.service.ImportSummary
+import com.chesspattern.backend.domain.JobStatus
+import com.chesspattern.backend.service.ImportException
+import com.chesspattern.backend.service.JobService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 /**
  * Тело запроса импорта. Поля — `var` с умолчаниями: так Jackson собирает объект
@@ -19,48 +21,27 @@ class ImportRequest {
     var perfType: String? = null
 }
 
-data class ImportResponse(
-    val player: String,
-    val gamesImported: Int,
-    val gamesAnalysed: Int,
-    val cached: Int,
-    val patternsFound: Int,
-    val durationMs: Long,
+data class JobAcceptedResponse(
+    val jobId: UUID,
+    val status: JobStatus,
 )
 
 @RestController
 @RequestMapping("/api/v1")
-class ImportController(private val importService: ImportService) {
+class ImportController(private val jobService: JobService) {
 
+    /** Ставит импорт в очередь и сразу отвечает: разбор 20 партий идёт минутами. */
     @PostMapping("/import")
-    fun import(@RequestBody request: ImportRequest): ResponseEntity<ImportResponse> {
+    fun import(@RequestBody request: ImportRequest): ResponseEntity<JobAcceptedResponse> {
         val platform = (request.platform ?: "lichess").lowercase()
         if (platform != "lichess") {
-            return ResponseEntity.badRequest().body(
-                ImportResponse(
-                    player = request.username.orEmpty(),
-                    gamesImported = 0,
-                    gamesAnalysed = 0,
-                    cached = 0,
-                    patternsFound = 0,
-                    durationMs = 0,
-                ),
-            )
+            throw ImportException("Платформа «$platform» пока не поддерживается: только lichess")
         }
-        val summary: ImportSummary = importService.import(
-            username = request.username.orEmpty(),
+        val job = jobService.enqueue(
+            player = request.username.orEmpty(),
             limit = request.limit,
             perfType = request.perfType,
         )
-        return ResponseEntity.ok(
-            ImportResponse(
-                player = summary.player,
-                gamesImported = summary.gamesImported,
-                gamesAnalysed = summary.gamesAnalysed,
-                cached = summary.cached,
-                patternsFound = summary.patternsFound,
-                durationMs = summary.durationMs,
-            ),
-        )
+        return ResponseEntity.accepted().body(JobAcceptedResponse(jobId = job.id, status = job.status))
     }
 }
