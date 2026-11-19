@@ -8,20 +8,32 @@ import java.net.URL
 /**
  * HTTP-клиент backend-а.
  *
- * Сознательно на `HttpURLConnection` + `org.json`: для M1 не тянем Retrofit и Hilt,
- * чтобы не раздувать сборку до первого экрана. Когда появится DI и экранов станет больше,
- * клиент меняется на Retrofit без изменения API слоя данных.
+ * Импорт асинхронный: `startImport` возвращает id задания, приложение опрашивает
+ * `job(id)` и рисует прогресс. Сознательно на `HttpURLConnection` + `org.json`:
+ * для M2 не тянем Retrofit и Hilt.
  */
 class ApiClient(private val baseUrl: String = BASE_URL) {
 
-    fun importGames(player: String, limit: Int = 10, perfType: String = "rapid") {
+    fun startImport(player: String, limit: Int = 10, perfType: String = "rapid"): String {
         val body = JSONObject()
             .put("platform", "lichess")
             .put("username", player)
             .put("limit", limit)
             .put("perfType", perfType)
             .toString()
-        request("/api/v1/import", method = "POST", body = body)
+        val json = request("/api/v1/import", method = "POST", body = body)
+        return JSONObject(json).getString("jobId")
+    }
+
+    fun job(id: String): JobState {
+        val item = JSONObject(request("/api/v1/jobs/$id"))
+        return JobState(
+            id = item.getString("id"),
+            status = item.getString("status"),
+            processed = item.optInt("processedGames", 0),
+            total = item.optInt("totalGames", 0),
+            error = item.optString("error").takeIf { it.isNotBlank() },
+        )
     }
 
     fun games(player: String, limit: Int = 10): List<GameSummary> {
@@ -88,7 +100,7 @@ class ApiClient(private val baseUrl: String = BASE_URL) {
         val connection = (URL(baseUrl + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 15_000
-            // Разбор 10–20 партий на слабом сервере идёт минутами.
+            // Один запрос — короткий; долгий импорт живёт в очереди и опрашивается отдельно.
             readTimeout = 120_000
             setRequestProperty("Accept", "application/json")
             if (body != null) {

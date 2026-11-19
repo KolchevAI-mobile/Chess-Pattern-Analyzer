@@ -44,4 +44,12 @@ data class BreakingSummary(
     val dominantPhase: String?,
 )
 
+data class JobState(
+    val id: String,
+    val status: String,
+    val processed: Int,
+    val total: Int,
+    val error: String?,
+)
+
 class ApiException(message: String) : RuntimeException(message)

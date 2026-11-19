@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -31,20 +32,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.chesspattern.data.ApiClient
+import com.chesspattern.data.ApiException
 import com.chesspattern.data.GameSummary
 import com.chesspattern.data.Insights
 import com.chesspattern.data.Pattern
 
 private sealed interface UiState {
     data object Idle : UiState
-    data object Loading : UiState
+    data class Loading(val processed: Int, val total: Int, val status: String) : UiState
     data class Ready(val insights: Insights, val games: List<GameSummary>) : UiState
     data class Error(val message: String) : UiState
 }
 
+private const val GAMES_LIMIT = 10
+private const val POLL_INTERVAL_MS = 1500L
+private const val MAX_POLLS = 240
+
 /**
- * MVP-экран: ник Lichess → импорт и разбор → диагноз.
- * Всё в одном экране, чтобы проверить ценность до появления навигации.
+ * MVP-экран: ник Lichess → постановка импорта в очередь → прогресс → диагноз.
+ * Всё в одном экране: проверяем ценность до появления навигации.
  */
 @Composable
 fun ChessPatternApp(modifier: Modifier = Modifier) {
@@ -55,13 +61,23 @@ fun ChessPatternApp(modifier: Modifier = Modifier) {
     fun analyze() {
         val player = nickname.trim()
         if (player.isEmpty()) return
-        state = UiState.Loading
+        state = UiState.Loading(0, GAMES_LIMIT, "QUEUED")
         Thread {
             val result = runCatching {
                 val api = ApiClient()
-                api.importGames(player, limit = 10)
+                val jobId = api.startImport(player, limit = GAMES_LIMIT)
+                var polls = 0
+                while (polls++ < MAX_POLLS) {
+                    val job = api.job(jobId)
+                    handler.post { state = UiState.Loading(job.processed, job.total, job.status) }
+                    when (job.status) {
+                        "DONE" -> break
+                        "FAILED" -> throw ApiException(job.error ?: "Импорт не удался")
+                    }
+                    Thread.sleep(POLL_INTERVAL_MS)
+                }
                 val insights = api.insights(player)
-                val games = api.games(player, limit = 10)
+                val games = api.games(player, limit = GAMES_LIMIT)
                 insights to games
             }
             handler.post {
@@ -101,7 +117,7 @@ fun ChessPatternApp(modifier: Modifier = Modifier) {
                 enabled = nickname.isNotBlank() && state !is UiState.Loading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Проанализировать 10 партий")
+                Text("Проанализировать $GAMES_LIMIT партий")
             }
 
             when (val current = state) {
@@ -110,13 +126,7 @@ fun ChessPatternApp(modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodySmall,
                 )
 
-                is UiState.Loading -> Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    CircularProgressIndicator()
-                    Text("Импортируем и разбираем партии… это может занять до пары минут")
-                }
+                is UiState.Loading -> LoadingCard(current)
 
                 is UiState.Error -> Text(
                     current.message,
@@ -131,6 +141,43 @@ fun ChessPatternApp(modifier: Modifier = Modifier) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LoadingCard(loading: UiState.Loading) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            CircularProgressIndicator()
+            Text(
+                when (loading.status) {
+                    "QUEUED" -> "Задание в очереди…"
+                    "RUNNING" -> "Разбираем партии…"
+                    else -> loading.status
+                },
+            )
+        }
+        if (loading.processed == 0) {
+            // Stockfish считает весь набор одним batch-вызовом: до его ответа
+            // честнее показать неопределённый прогресс, чем «0 из 10».
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            Text(
+                "Анализируем партии в Stockfish — это самая долгая часть",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        } else {
+            LinearProgressIndicator(
+                progress = { loading.processed.toFloat() / loading.total },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                "Обработано ${loading.processed} из ${loading.total}",
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }
